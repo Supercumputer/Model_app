@@ -11,7 +11,10 @@ const {
     isInStallApp,
     deciceActions,
     toggleService,
-    transferFile
+    transferFile,
+    touch,
+    swipeSimple,
+    swipeCustom
 } = require('./adbFunctions');
 
 const path = require('node:path');
@@ -45,12 +48,24 @@ app.whenReady().then(() => {
     ipcMain.handle('pressHome', () => pressHome());
     ipcMain.handle('pressMenu', () => pressMenu());
     ipcMain.on('device-actions', (event, action) => deciceActions(event, action));
+
     ipcMain.on('toggle-service', (event, service) => toggleService(event, service));
+
     ipcMain.on('open-app', (event, packageName) => startApp(event, packageName))
+
     ipcMain.on('close-app', (event, packageName) => closeApp(event, packageName));
+
     ipcMain.on('uninstall-app', (event, packageName) => unInStallApp(event, packageName));
+
     ipcMain.on('isinstall-app', (event, packageName) => isInStallApp(event, packageName));
+
     ipcMain.on('install-app', (event, apkPath) => inStallApp(event, apkPath));
+
+    ipcMain.on('touch', (event, xpath, timeOut, touchType, delay) => touch(event, xpath, timeOut, touchType, delay));
+
+    ipcMain.on('swipe-simple', (event, direction) => swipeSimple(event, direction));
+
+    ipcMain.on('swipe-custom', (event, startX, startY, endX, endY, duration) => swipeCustom(event, startX, startY, endX, endY, duration));
 
     ipcMain.on('transfer-file', (event, action, localFilePath, remoteFilePath) =>
         transferFile(event, action, localFilePath, remoteFilePath)
