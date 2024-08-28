@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
-
+const { fork } = require('child_process');
 const {
     startApp,
     closeApp,
@@ -46,7 +46,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
     createWindow()
-
+    const wsScrcpy = fork(path.join(__dirname, 'ws-scrcpy/dist/index.js'));
     ipcMain.handle('pressBack', () => pressBack());
     ipcMain.handle('pressHome', () => pressHome());
     ipcMain.handle('pressMenu', () => pressMenu());
