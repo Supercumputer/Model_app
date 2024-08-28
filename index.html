@@ -11,7 +11,14 @@
 
 <body>
     <h1>Mở ứng dụng trên điện thoại qua ADB</h1>
-    <iframe id="screen" width="800" height="600" src="http://localhost:8000"></iframe>
+
+    <button id="start-scrcpy">Start ws-scrcpy</button>
+    <button id="stop-scrcpy">Stop ws-scrcpy</button>
+
+    <div id="scrcpy-container">
+        <iframe id="scrcpy-iframe" src="http://localhost:8000" frameborder="0"></iframe>
+    </div>
+
     <div>
         <span>PackageName: </span>
         <input id="packageName" type="text" class="form-control" value="com.android.vending"
@@ -118,7 +125,6 @@
         </div>
 
     </div>
-
 
     <b class="mb-0 mt-3">Type text</b>
     <div class="p-3 border rounded">
@@ -283,6 +289,19 @@
     </div>
 
     <script>
+
+        const scrcpyContainer = document.getElementById('scrcpy-container');
+        const scrcpyIframe = document.getElementById('scrcpy-iframe');
+
+        document.getElementById('start-scrcpy').addEventListener('click', () => {
+            scrcpyContainer.style.display = 'block';
+            window.electronAPI.onOpenScreenApp();
+        });
+
+        document.getElementById('stop-scrcpy').addEventListener('click', () => {
+            scrcpyContainer.style.display = 'none';
+            window.electronAPI.onCloseScreenApp();
+        });
 
         document.getElementById('start').addEventListener('click', () => {
             const packageName = document.getElementById('packageName').value;

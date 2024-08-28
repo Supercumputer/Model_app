@@ -18,5 +18,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     sendTypeTextApp: (selector, seconds, text) => ipcRenderer.send('type-text', selector, seconds, text),
     sendScreenShotApp: (options) => ipcRenderer.send('screen-shot', options),
     sendInstallApp: (apkPath) => ipcRenderer.send('install-app', apkPath),
-    onOpenAppReply: (callback) => ipcRenderer.on('open-app-reply', callback)
+    onOpenAppReply: (callback) => ipcRenderer.on('open-app-reply', callback),
+
+    onOpenScreenApp: () => ipcRenderer.invoke('start-ws-scrcpy'),
+    onCloseScreenApp: () => ipcRenderer.invoke('stop-ws-scrcpy'),
+
 });

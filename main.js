@@ -17,7 +17,9 @@ const {
     swipeCustom,
     typeText,
     screenShot,
-    pressKey
+    pressKey,
+    startScrcpy,
+    stopScrcpy
 } = require('./adbFunctions');
 
 const path = require('node:path');
@@ -46,7 +48,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
     createWindow()
-    const wsScrcpy = fork(path.join(__dirname, 'ws-scrcpy/dist/index.js'));
+
     ipcMain.handle('pressBack', () => pressBack());
     ipcMain.handle('pressHome', () => pressHome());
     ipcMain.handle('pressMenu', () => pressMenu());
@@ -81,6 +83,14 @@ app.whenReady().then(() => {
     ipcMain.on('screen-shot', (event, options) => screenShot(event, options));
 
     ipcMain.on('press-key', (event, keyCode) => pressKey(event, keyCode));
+
+    ipcMain.handle('start-ws-scrcpy', () => {
+        startScrcpy()
+    });
+
+    ipcMain.handle('stop-ws-scrcpy', () => {
+        stopScrcpy()
+    });
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
