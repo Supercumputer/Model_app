@@ -14,7 +14,10 @@ const {
     transferFile,
     touch,
     swipeSimple,
-    swipeCustom
+    swipeCustom,
+    typeText,
+    screenShot,
+    pressKey
 } = require('./adbFunctions');
 
 const path = require('node:path');
@@ -70,6 +73,14 @@ app.whenReady().then(() => {
     ipcMain.on('transfer-file', (event, action, localFilePath, remoteFilePath) =>
         transferFile(event, action, localFilePath, remoteFilePath)
     );
+
+    ipcMain.on('type-text', (event, selector, seconds, text) =>
+        typeText(event, selector, seconds, text)
+    );
+
+    ipcMain.on('screen-shot', (event, options) => screenShot(event, options));
+
+    ipcMain.on('press-key', (event, keyCode) => pressKey(event, keyCode));
 
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {

@@ -1,7 +1,9 @@
-const { exec, execSync } = require('child_process');
+const { exec, execSync, spawn } = require('child_process');
 const fs = require('fs');
 const { DOMParser } = require('xmldom');
 const xpath = require('xpath');
+const path = require('path');
+const Jimp = require('jimp'); // Thêm import cho jimp
 
 function startApp(event, packageName) {
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`; // Đường dẫn đầy đủ tới adb
@@ -192,7 +194,8 @@ function deciceActions(event, action) {
 function toggleAirplaneMode(event) {
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
 
-    exec(`${adbPath} shell settings put global airplane_mode_on 1`, (error, stdout, stderr) => {
+    // Kiểm tra trạng thái hiện tại của chế độ máy bay
+    exec(`${adbPath} shell settings get global airplane_mode_on`, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
             event.reply('service-toggle-reply', `Error: ${error.message}`);
@@ -203,30 +206,75 @@ function toggleAirplaneMode(event) {
             event.reply('service-toggle-reply', `Stderr: ${stderr}`);
             return;
         }
-        event.reply('service-toggle-reply', `Airplane mode toggled successfully.`);
+
+        const isAirplaneModeOn = stdout.trim() === '1';
+
+        // Chuyển trạng thái chế độ máy bay
+        const command = isAirplaneModeOn
+            ? `${adbPath} shell settings put global airplane_mode_on 0`
+            : `${adbPath} shell settings put global airplane_mode_on 1`;
+
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                event.reply('service-toggle-reply', `Error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                event.reply('service-toggle-reply', `Stderr: ${stderr}`);
+                return;
+            }
+
+            const action = isAirplaneModeOn ? 'disabled' : 'enabled';
+            event.reply('service-toggle-reply', `Airplane mode ${action} successfully.`);
+        });
     });
 }
 function toggleWifi(event) {
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
-    console.log(event);
 
-    exec(`${adbPath} shell svc wifi enable`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error: ${error.message}`);
-            event.reply('service-toggle-reply', `Error: ${error.message}`);
+    const dumpsys = spawn(`${adbPath} shell dumpsys wifi`, { shell: true });
+
+    let stdoutData = '';
+    dumpsys.stdout.on('data', (data) => {
+        stdoutData += data.toString();
+    });
+
+    dumpsys.stderr.on('data', (data) => {
+        console.error(`Stderr: ${data}`);
+        event.reply('service-toggle-reply', `Stderr: ${data}`);
+    });
+
+    dumpsys.on('close', (code) => {
+        if (code !== 0) {
+            event.reply('service-toggle-reply', `Command failed with exit code ${code}`);
             return;
         }
-        if (stderr) {
-            console.error(`Stderr: ${stderr}`);
-            event.reply('service-toggle-reply', `Stderr: ${stderr}`);
-            return;
-        }
-        event.reply('service-toggle-reply', `Wi-Fi toggled successfully.`);
+
+        const isWifiEnabled = stdoutData.includes("Wi-Fi is enabled");
+        const command = isWifiEnabled
+            ? `${adbPath} shell svc wifi disable`
+            : `${adbPath} shell svc wifi enable`;
+
+        const wifiToggle = spawn(command, { shell: true });
+
+        wifiToggle.on('close', (code) => {
+            if (code !== 0) {
+                event.reply('service-toggle-reply', `Command failed with exit code ${code}`);
+                return;
+            }
+
+            const action = isWifiEnabled ? 'Wi-Fi disabled' : 'Wi-Fi enabled';
+            event.reply('service-toggle-reply', `${action} successfully.`);
+        });
     });
 }
 function toggleData(event) {
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
-    exec(`${adbPath} shell svc data enable`, (error, stdout, stderr) => {
+
+    // Bước 1: Kiểm tra trạng thái hiện tại của Mobile Data
+    exec(`${adbPath} shell settings get global mobile_data`, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
             event.reply('service-toggle-reply', `Error: ${error.message}`);
@@ -237,12 +285,33 @@ function toggleData(event) {
             event.reply('service-toggle-reply', `Stderr: ${stderr}`);
             return;
         }
-        event.reply('service-toggle-reply', `Mobile data toggled successfully.`);
+
+        // Tìm trạng thái của Mobile Data trong kết quả đầu ra
+        const isDataEnabled = stdout.trim() === '1'; // 1 indicates enabled
+
+        // Bước 2: Toggle trạng thái của Mobile Data
+        const action = isDataEnabled ? 'disable' : 'enable';
+
+        exec(`${adbPath} shell svc data ${action}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                event.reply('service-toggle-reply', `Error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                event.reply('service-toggle-reply', `Stderr: ${stderr}`);
+                return;
+            }
+            event.reply('service-toggle-reply', `Mobile data ${action === 'enable' ? 'enabled' : 'disabled'}.`);
+        });
     });
 }
 function toggleLocation(event) {
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
-    exec(`${adbPath} shell settings put secure location_mode 3`, (error, stdout, stderr) => {
+
+    // Kiểm tra trạng thái hiện tại của Location
+    exec(`${adbPath} shell settings get secure location_mode`, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error: ${error.message}`);
             event.reply('service-toggle-reply', `Error: ${error.message}`);
@@ -253,7 +322,23 @@ function toggleLocation(event) {
             event.reply('service-toggle-reply', `Stderr: ${stderr}`);
             return;
         }
-        event.reply('service-toggle-reply', `Location mode toggled successfully.`);
+
+        const currentState = parseInt(stdout.trim(), 10);
+        const newState = currentState === 3 ? 0 : 3;
+
+        exec(`${adbPath} shell settings put secure location_mode ${newState}`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error: ${error.message}`);
+                event.reply('service-toggle-reply', `Error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.error(`Stderr: ${stderr}`);
+                event.reply('service-toggle-reply', `Stderr: ${stderr}`);
+                return;
+            }
+            event.reply('service-toggle-reply', `Location mode toggled to ${newState === 3 ? 'enabled' : 'disabled'}.`);
+        });
     });
 }
 function toggleService(event, service) {
@@ -279,7 +364,11 @@ function toggleService(event, service) {
 
 }
 function transferFile(event, action, localFilePath, remoteFilePath) {
+    //  Remote (Thiết bị Android): /sdcard/Download/example.jpg
+    //  Local (Máy tính của bạn): C:/Users/MY ASUS/Downloads/
+
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`; // Đường dẫn đầy đủ tới adb
+    console.log(action, localFilePath, remoteFilePath);
 
     // Xác định lệnh dựa trên hành động
     let command;
@@ -309,6 +398,7 @@ function transferFile(event, action, localFilePath, remoteFilePath) {
 }
 
 function touch(event, xpathQuery, timeOut = 10, touchType = 'Normal', delay = 100) {
+    console.log(`Touch: ${xpathQuery}, ${timeOut}, ${touchType}, ${delay}`);
 
     const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`; // Đường dẫn đầy đủ tới adb
 
@@ -370,6 +460,8 @@ function touch(event, xpathQuery, timeOut = 10, touchType = 'Normal', delay = 10
     } catch (error) {
         event.reply('touch-reply', `Error: ${error.message}`);
     }
+
+
 }
 
 function swipeSimple(event, direction) {
@@ -463,6 +555,189 @@ function swipeCustom(event, startX, startY, endX, endY, duration) {
     }
 }
 
+async function screenShot(event, options) {
+    console.log('Options:', options);
+
+    const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
+
+    const screenshotName = options.fileName || 'screenshot.png';
+    const outputFolder = options.folderOutput || '.';
+    const screenshotPathOnDevice = '/sdcard/screenshot.png';
+    const localScreenshotPath = path.join(outputFolder, screenshotName);
+    const crop = options.crop || false;
+    const outputVariable = options.outputVariable || null;
+    const startX = options.startX || 0;
+    const startY = options.startY || 0;
+    const endX = options.endX || 0;
+    const endY = options.endY || 0;
+
+    try {
+        // Bước 1: Chụp ảnh màn hình trên thiết bị Android và lưu vào bộ nhớ của thiết bị
+        console.log('Taking screenshot...');
+        execSync(`${adbPath} shell screencap -p ${screenshotPathOnDevice}`);
+
+        // Bước 2: Tải ảnh chụp màn hình về máy tính
+        console.log('Pulling screenshot...');
+        execSync(`${adbPath} pull ${screenshotPathOnDevice} ${localScreenshotPath}`);
+
+        // Bước 3: Xóa ảnh chụp màn hình khỏi thiết bị sau khi đã tải về
+        execSync(`${adbPath} shell rm ${screenshotPathOnDevice}`);
+
+        // Bước 4: Xử lý cắt ảnh nếu được yêu cầu
+        if (crop) {
+            console.log('Cropping screenshot...');
+            // Sử dụng sharp để cắt ảnh dựa trên các tọa độ được nhập
+            const width = endX - startX;
+            const height = endY - startY;
+            await sharp(localScreenshotPath)
+                .extract({ left: startX, top: startY, width: width, height: height })
+                .toFile(localScreenshotPath.replace('.png', '_cropped.png'));
+        }
+
+        // Bước 5: Xuất ảnh dưới dạng base64 nếu yêu cầu
+        if (outputVariable) {
+            const screenshotData = fs.readFileSync(localScreenshotPath, { encoding: 'base64' });
+            event.reply('screenshot-reply', { base64: screenshotData });
+        } else {
+            event.reply('screenshot-reply', `Screenshot saved as ${localScreenshotPath}`);
+        }
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+        event.reply('screenshot-reply', `Error: ${error.message}`);
+    }
+}
+
+async function screenShot(event, options) {
+    console.log('Options:', options);
+
+    const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
+
+    const screenshotName = options.fileName || 'screenshot.png';
+    const outputFolder = `"${options.folderOutput}"` || '.';
+    const screenshotPathOnDevice = '/sdcard/screenshot.png';
+    const localScreenshotPath = path.join(outputFolder, screenshotName);
+
+    const crop = options.crop || false;
+    const outputVariable = options.outputVariable || null;
+    const startX = options.startX || 0;
+    const startY = options.startY || 0;
+    const endX = options.endX || 0;
+    const endY = options.endY || 0;
+
+    try {
+        // Bước 1: Chụp ảnh màn hình trên thiết bị Android và lưu vào bộ nhớ của thiết bị
+        console.log('Taking screenshot...');
+        execSync(`${adbPath} shell screencap -p ${screenshotPathOnDevice}`);
+
+        // Bước 2: Tải ảnh chụp màn hình về máy tính
+        console.log('Pulling screenshot...');
+        execSync(`${adbPath} pull ${screenshotPathOnDevice} ${localScreenshotPath}`);
+
+        // Bước 3: Xóa ảnh chụp màn hình khỏi thiết bị sau khi đã tải về
+        execSync(`${adbPath} shell rm ${screenshotPathOnDevice}`);
+
+        // Bước 4: Xử lý cắt ảnh nếu được yêu cầu
+        if (crop) {
+            console.log('Cropping screenshot...');
+            // Sử dụng jimp để cắt ảnh dựa trên các tọa độ được nhập
+            const image = await Jimp.read(localScreenshotPath);
+            const width = endX - startX;
+            const height = endY - startY;
+            await image
+                .crop(startX, startY, width, height)
+                .writeAsync(localScreenshotPath.replace('.png', '_cropped.png'));
+        }
+
+        // Bước 5: Xuất ảnh dưới dạng base64 nếu yêu cầu
+        if (outputVariable) {
+            const screenshotData = fs.readFileSync(localScreenshotPath, { encoding: 'base64' });
+            event.reply('screenshot-reply', { base64: screenshotData });
+        } else {
+            event.reply('screenshot-reply', `Screenshot saved as ${localScreenshotPath}`);
+        }
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+        event.reply('screenshot-reply', `Error: ${error.message}`);
+    }
+}
+
+function pressKey(event, keyCode) {
+    const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
+    console.log(`Pressing key ${keyCode}...`);
+
+    try {
+        // Sử dụng execSync để gửi lệnh nhấn phím tới thiết bị Android
+        console.log(`Sending key event ${keyCode} to the device...`);
+        execSync(`${adbPath} shell input keyevent ${keyCode}`);
+        console.log(`Key event ${keyCode} sent successfully.`);
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+    }
+}
+
+function typeText(event, selector, seconds = 10, text) {
+    console.log(`Selector: ${selector}, Duration: ${seconds}, Text: ${text}`);
+
+    const adbPath = `"C:/Users/MY ASUS/AppData/Local/Android/Sdk/platform-tools/adb.exe"`;
+
+    try {
+        // Bước 1: Trích xuất giao diện hiện tại và lưu vào tệp XML
+        console.log('Running uiautomator dump...');
+        execSync(`${adbPath} shell uiautomator dump /sdcard/ui.xml`, { stdio: 'inherit' });
+
+        console.log('Pulling ui.xml...');
+        execSync(`${adbPath} pull /sdcard/ui.xml .`, { stdio: 'inherit' });
+
+        // Bước 2: Đọc và phân tích tệp XML để lấy tọa độ của trường nhập liệu
+        const data = fs.readFileSync('ui.xml', 'utf8');
+        const doc = new DOMParser().parseFromString(data, 'text/xml');
+        const nodes = xpath.select(selector, doc);
+
+        if (nodes.length > 0) {
+            const node = nodes[0];
+            const boundsAttr = node.getAttribute('bounds');
+
+            if (!boundsAttr) {
+                event.reply('type-text-reply', 'No bounds attribute found for the element');
+                return;
+            }
+
+            const boundsRegex = /\[(\d+),(\d+)\]\[(\d+),(\d+)\]/;
+            const match = boundsAttr.match(boundsRegex);
+
+            if (match) {
+                const [left, top, right, bottom] = match.slice(1).map(Number);
+                const x = Math.floor((left + right) / 2);
+                const y = Math.floor((top + bottom) / 2);
+
+                // Bước 3: Nhấp vào trường để chọn nó
+                console.log(`Tapping on (${x}, ${y})...`);
+                execSync(`${adbPath} shell input tap ${x} ${y}`, { stdio: 'inherit' });
+
+                // Bước 4: Nhập văn bản vào trường
+                const escapedText = text.replace(/ /g, '%s'); // Escape space characters
+                const typeCommand = `${adbPath} shell input text "${escapedText}"`;
+
+                console.log(`Executing command: ${typeCommand}`);
+                execSync(typeCommand, { stdio: 'inherit' });
+
+                // Đợi trong một khoảng thời gian để đảm bảo văn bản đã được nhập
+                console.log(`Waiting for ${seconds} seconds...`);
+                setTimeout(() => {
+                    event.reply('type-text-reply', `Text typed successfully into field at (${x}, ${y})`);
+                }, seconds * 1000);
+            } else {
+                event.reply('type-text-reply', 'Bounds attribute format is incorrect');
+            }
+        } else {
+            event.reply('type-text-reply', 'No element found for the XPath query');
+        }
+    } catch (error) {
+        console.error(`Error: ${error.message}`);
+        event.reply('type-text-reply', `Error: ${error.message}`);
+    }
+}
+
 module.exports = {
     startApp,
     closeApp,
@@ -477,5 +752,8 @@ module.exports = {
     transferFile,
     touch,
     swipeSimple,
-    swipeCustom
+    swipeCustom,
+    screenShot,
+    pressKey,
+    typeText
 }       

@@ -23,19 +23,23 @@
         <input type="text" class="form-control" id="file" name="file_apk">
     </div>
 
-    <!-- <b class="mb-1">Transfer file: </b>
-    <div>
-        <input type="radio" name="transferService" id="pull" value="pull" checked>
-        <label for="pull">pull</label>
-        <input type="radio" name="transferService" id="push" value="push">
-        <label for="push">push</label>
+    <b class="mb-1">Transfer file: </b>
+    <div class="p-3 border rounded">
+        <div class="mb-3">
+            <input type="radio" name="transferService" id="pull" value="pull" checked>
+            <label for="pull">pull</label>
+            <input type="radio" name="transferService" id="push" value="push">
+            <label for="push">push</label>
+        </div>
+        <div class="mb-3 d-flex flex-column gap-2">
+            <label for="">LocalFilePath</label>
+            <input type="text" class="form-control" id="fileInput" name="local" />
+            <label for="">RemoteFilePath</label>
+            <input type="text" class="form-control" id="fileInput" name="remote" />
+        </div>
     </div>
-    <div class="mb-3 d-flex gap-2">
-        <input type="file" class="form-control" id="fileInput" />
-        <input type="file" class="form-control" id="fileInput" />
-    </div> -->
 
-    <p class="mb-0">Touch</p>
+    <b class="mb-0">Touch</b>
     <div class="p-3 border rounded">
         <div class="mb-3">
             <label for="">Xpath</label>
@@ -63,7 +67,7 @@
         </div>
     </div>
 
-    <p class="mb-0 mt-3">Swipe/Scroll</p>
+    <b class="mb-0 mt-3">Swipe/Scroll</b>
     <div class="p-3 border rounded">
         <div class="mb-3">
             <input type="radio" name="mode" id="Simple" value="simple" checked>
@@ -115,16 +119,68 @@
 
     </div>
 
+
+    <b class="mb-0 mt-3">Type text</b>
+    <div class="p-3 border rounded">
+        <div class="mb-3">
+            <label for="Simple">Selector</label>
+            <input type="text" name="selector" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label for="Simple">Timeout (seconds)</label>
+            <input type="text" name="seconds" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label for="Simple">Text</label>
+            <textarea name="text" id="" class="form-control"></textarea>
+        </div>
+
+    </div>
+
+    <b class="mb-0 mt-3">Press key</b>
+    <div class="p-3 border rounded">
+        <select id="keyCode" class="form-control">
+            <option value="">--Select Key--</option>
+            <option value="3">Home</option>
+            <option value="4">Back</option>
+            <option value="24">Volume Up</option>
+            <option value="25">Volume Down</option>
+            <option value="26">Power</option>
+            <option value="27">Camera</option>
+            <option value="28">Clear</option>
+            <option value="29">Asterisk</option>
+            <option value="30">Hash</option>
+            <option value="31">Call</option>
+            <option value="32">End Call</option>
+            <option value="33">Volume Mute</option>
+            <option value="34">Media Play</option>
+            <option value="35">Media Pause</option>
+            <option value="36">Media Stop</option>
+            <option value="37">Media Next</option>
+            <option value="38">Media Previous</option>
+            <option value="39">Media Fast Forward</option>
+            <option value="40">Media Rewind</option>
+            <option value="41">Mute</option>
+            <option value="42">Volume Up / Down</option>
+            <option value="43">Navigation Up</option>
+            <option value="44">Navigation Down</option>
+            <option value="45">Navigation Left</option>
+            <option value="46">Navigation Right</option>
+        </select>
+    </div>
+
+    <b class="mb-1">Action device: </b>
     <div>
-        <b class="mb-1">Action device: </b>
         <input type="radio" name="action" id="lock" value="lock" checked>
         <label for="lock">Lock</label>
         <input type="radio" name="action" id="unlock" value="unlock">
         <label for="unlock">Unlock</label>
     </div>
 
+    <b class="mb-1">Toggle service:</b>
     <div>
-        <b class="mb-1">Toggle service:</b>
         <input type="radio" name="service" id="AirplaneMode" value="AirplaneMode" checked>
         <label for="lock">AirplaneMode</label>
 
@@ -136,6 +192,55 @@
 
         <input type="radio" name="service" id="Location" value="Location">
         <label for="Location">Location</label>
+
+    </div>
+
+    <b class="mb-1">Screenshot:</b>
+    <div class="p-3 border rounded">
+        <div class="mb-3">
+            <label for="Simple">File name</label>
+            <input type="text" name="fileName" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label for="Simple">Folder output</label>
+            <input type="text" name="folderOutput" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <input type="checkbox" name="crop">
+            <label for="crop">crop</label>
+        </div>
+
+        <div class="mb-3 flex-1">
+            <div class="d-flex gap-2 ">
+                <div>
+                    <label for="">Start X</label>
+                    <input type="text" class="form-control" name="stx">
+                </div>
+                <div>
+                    <label for="">Start Y</label>
+                    <input type="text" class="form-control" name="sty">
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 ">
+                <div>
+                    <label for="">End X</label>
+                    <input type="text" class="form-control" name="enx">
+                </div>
+                <div>
+                    <label for="">End Y</label>
+                    <input type="text" class="form-control" name="eny">
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mb-3">
+            <label for="Simple">Output variable (base64)</label>
+            <input type="text" name="outputVariable" class="form-control">
+        </div>
 
     </div>
 
@@ -164,6 +269,17 @@
     <div class="d-flex gap-2 flex-wrap mb-2">
         <button type="button" class="btn btn-outline-primary" id="touch">Touch</button>
         <button type="button" class="btn btn-outline-primary" id="Swipe/Scroll">Swipe/Scroll</button>
+    </div>
+
+    <p class="">SCREEN</p>
+    <div class="d-flex gap-2 flex-wrap mb-2">
+        <button type="button" class="btn btn-outline-primary" id="screenshot">Screenshot</button>
+    </div>
+
+    <p class="">KEYBOARD</p>
+    <div class="d-flex gap-2 flex-wrap mb-2">
+        <button type="button" class="btn btn-outline-primary" id="pressKey">Press key</button>
+        <button type="button" class="btn btn-outline-primary" id="typeText">Type text</button>
     </div>
 
     <script>
@@ -198,6 +314,11 @@
             window.electronAPI.sendToggleApp(service);
         });
 
+        document.getElementById('pressKey').addEventListener('click', () => {
+            let keyCode = document.querySelector('#keyCode').value;
+            window.electronAPI.sendPressKeyApp(keyCode);
+        });
+
         document.getElementById('touch').addEventListener('click', () => {
             let xpath = document.querySelector('input[name="xpath"]').value;
             let timeOut = document.querySelector('input[name="timeout"]').value;
@@ -225,8 +346,53 @@
 
         });
 
-        document.getElementById('transferService').addEventListener('click', () => {
+        document.getElementById('screenshot').addEventListener('click', () => {
+            let options = {}
 
+            let fileName = document.querySelector('input[name="fileName"]').value;
+            let crop = document.querySelector('input[name="crop"]:checked');
+            let outputVariable = document.querySelector('input[name="outputVariable"]').value;
+            let folderOutput = document.querySelector('input[name="folderOutput"]').value;
+            options = {
+                fileName,
+                crop: crop ? true : false,
+                folderOutput,
+                outputVariable
+            }
+
+            if (crop) {
+                let startx = document.querySelector('input[name="stx"]').value;
+                let starty = document.querySelector('input[name="sty"]').value;
+                let endx = document.querySelector('input[name="enx"]').value;
+                let endy = document.querySelector('input[name="eny"]').value;
+
+                options = {
+                    ...options,
+                    startx,
+                    starty,
+                    endx,
+                    endy
+                }
+            }
+
+            window.electronAPI.sendScreenShotApp(options);
+
+        });
+
+        document.getElementById('transferService').addEventListener('click', () => {
+            const type = document.querySelector('input[name="transferService"]:checked').value;
+            const LocalFilePath = document.querySelector('input[name="local"]').value;
+            const RemoteFilePath = document.querySelector('input[name="remote"]').value;
+            window.electronAPI.sendTransferFileApp(type, LocalFilePath, RemoteFilePath);
+        });
+
+        document.getElementById('typeText').addEventListener('click', () => {
+
+            const selector = document.querySelector('input[name="selector"]').value;
+            const seconds = document.querySelector('input[name="seconds"]').value;
+            const text = document.querySelector('textarea[name="text"]').value;
+
+            window.electronAPI.sendTypeTextApp(selector, seconds, text);
         });
 
         document.getElementById('install').addEventListener('click', () => {
@@ -265,8 +431,6 @@
         });
 
     </script>
-
-
 
 </body>
 
