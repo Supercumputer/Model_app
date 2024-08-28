@@ -24,7 +24,6 @@ const {
 
 const path = require('node:path');
 
-
 const isDev = process.env.NODE_ENV !== 'development'
 
 function createWindow() {
@@ -36,6 +35,7 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             enableRemoteModule: false,
+            webSecurity: false
         }
     })
 
