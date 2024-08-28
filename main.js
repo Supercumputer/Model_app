@@ -23,7 +23,7 @@ const {
 } = require('./adbFunctions');
 
 const path = require('node:path');
-
+let scrcpyWindow;
 const isDev = process.env.NODE_ENV !== 'development'
 
 function createWindow() {
@@ -43,6 +43,21 @@ function createWindow() {
     }
 
     win.loadFile('index.html')
+}
+
+function createScrcpyWindow() {
+    scrcpyWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        show: false, // Ban đầu ẩn cửa sổ
+    });
+
+    scrcpyWindow.on('closed', () => {
+        scrcpyWindow = null;
+    });
+
+    // Tải URL của ws-scrcpy (giả sử ws-scrcpy chạy trên localhost:8886)
+    scrcpyWindow.loadURL('http://localhost:8000');
 }
 
 app.whenReady().then(() => {
@@ -85,10 +100,22 @@ app.whenReady().then(() => {
 
     ipcMain.handle('start-ws-scrcpy', () => {
         startScrcpy()
+
+        if (!scrcpyWindow) {
+            createScrcpyWindow();
+        }
+
+        scrcpyWindow.show();
     });
 
     ipcMain.handle('stop-ws-scrcpy', () => {
         stopScrcpy()
+
+        // Ẩn cửa sổ ws-scrcpy nếu đang hiển thị
+        if (scrcpyWindow) {
+            scrcpyWindow.hide();
+        }
+
     });
 
     app.on('activate', () => {

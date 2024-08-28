@@ -15,10 +15,6 @@
     <button id="start-scrcpy">Start ws-scrcpy</button>
     <button id="stop-scrcpy">Stop ws-scrcpy</button>
 
-    <div id="scrcpy-container">
-        <iframe id="scrcpy-iframe" src="http://localhost:8000" frameborder="0"></iframe>
-    </div>
-
     <div>
         <span>PackageName: </span>
         <input id="packageName" type="text" class="form-control" value="com.android.vending"
@@ -290,16 +286,11 @@
 
     <script>
 
-        const scrcpyContainer = document.getElementById('scrcpy-container');
-        const scrcpyIframe = document.getElementById('scrcpy-iframe');
-
         document.getElementById('start-scrcpy').addEventListener('click', () => {
-            scrcpyContainer.style.display = 'block';
             window.electronAPI.onOpenScreenApp();
         });
 
         document.getElementById('stop-scrcpy').addEventListener('click', () => {
-            scrcpyContainer.style.display = 'none';
             window.electronAPI.onCloseScreenApp();
         });
 
